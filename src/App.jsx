@@ -1,18 +1,21 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { apiGet, apiPost } from "./lib/api";
+import Hero from "./components/Hero";
+import Highlights from "./components/Highlights";
+import Marquee from "./components/Marquee";
+import CTA from "./components/CTA";
 
 function Header({ cartCount }) {
   return (
-    <header className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-slate-200">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
+    <header className="sticky top-0 z-40 bg-white/70 backdrop-blur border-b border-white/60">
+      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
         <a href="#" className="flex items-center gap-2">
           <span className="text-2xl font-black text-slate-900">ClickNCart</span>
           <span className="hidden sm:inline text-sm text-slate-500">Smart shopping. Simplified.</span>
         </a>
         <nav className="flex items-center gap-4 text-sm">
-          <a href="#" className="text-slate-700 hover:text-slate-900">Home</a>
+          <a href="#home" className="text-slate-700 hover:text-slate-900">Home</a>
           <a href="#catalog" className="text-slate-700 hover:text-slate-900">Shop</a>
-          <a href="#account" className="text-slate-700 hover:text-slate-900">Account</a>
           <a href="#cart" className="relative inline-flex items-center text-slate-700 hover:text-slate-900">
             <span>Cart</span>
             <span className="ml-1 inline-flex items-center justify-center w-5 h-5 text-[10px] font-semibold bg-blue-600 text-white rounded-full">{cartCount}</span>
@@ -26,14 +29,14 @@ function Header({ cartCount }) {
 function ProductCard({ p, onAdd }) {
   const price = p?.variants?.[0]?.price ?? 0;
   return (
-    <div className="group border rounded-lg overflow-hidden bg-white">
+    <div className="group border rounded-2xl overflow-hidden bg-white shadow-sm hover:shadow-md transition">
       <img src={p.images?.[0] || "https://placehold.co/600x400"} alt={p.title} className="h-48 w-full object-cover"/>
       <div className="p-4">
         <h3 className="font-semibold text-slate-900">{p.title}</h3>
         <p className="text-sm text-slate-500 line-clamp-2">{p.description}</p>
         <div className="mt-3 flex items-center justify-between">
           <span className="text-lg font-bold">${price}</span>
-          <button onClick={() => onAdd(p)} className="px-3 py-1.5 rounded bg-blue-600 text-white hover:bg-blue-700">Add</button>
+          <button onClick={() => onAdd(p)} className="px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Add</button>
         </div>
       </div>
     </div>
@@ -46,19 +49,22 @@ function Home({ onAdd }) {
     apiGet("/products?limit=8").then((d) => setProducts(d.items)).catch(() => setProducts([]));
   }, []);
   return (
-    <section id="home" className="bg-gradient-to-b from-blue-50 to-white">
-      <div className="max-w-6xl mx-auto px-4 py-16">
-        <div className="text-center max-w-2xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-black tracking-tight text-slate-900">ClickNCart</h1>
-          <p className="mt-2 text-lg text-slate-600">Smart shopping. Simplified.</p>
-          <a href="#catalog" className="inline-block mt-6 px-5 py-3 rounded bg-blue-600 text-white hover:bg-blue-700">Start shopping</a>
-        </div>
-        <div className="mt-12 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <section id="home" className="bg-gradient-to-b from-white to-slate-50">
+      <Hero onCTAClick={() => {
+        const el = document.querySelector('#catalog');
+        el?.scrollIntoView({ behavior: 'smooth' });
+      }} />
+      <Marquee />
+      <div className="max-w-7xl mx-auto px-4 py-10">
+        <h2 className="text-2xl md:text-3xl font-black text-slate-900 text-center">Featured this week</h2>
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {products.map((p) => (
             <ProductCard key={p.id} p={p} onAdd={onAdd} />
           ))}
         </div>
       </div>
+      <Highlights />
+      <CTA />
     </section>
   );
 }
@@ -81,13 +87,13 @@ function Catalog({ onAdd }) {
   useEffect(() => { fetchItems(); }, []);
   return (
     <section id="catalog" className="bg-white">
-      <div className="max-w-6xl mx-auto px-4 py-12">
+      <div className="max-w-7xl mx-auto px-4 py-12">
         <div className="flex items-center gap-2">
-          <input value={q} onChange={(e)=>setQ(e.target.value)} placeholder="Search products" className="w-full border rounded px-3 py-2"/>
-          <button onClick={fetchItems} className="px-4 py-2 bg-slate-900 text-white rounded">Search</button>
+          <input value={q} onChange={(e)=>setQ(e.target.value)} placeholder="Search products" className="w-full border rounded-xl px-3 py-2"/>
+          <button onClick={fetchItems} className="px-4 py-2 bg-slate-900 text-white rounded-xl">Search</button>
         </div>
         <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {loading ? Array.from({length:8}).map((_,i)=>(<div key={i} className="h-72 bg-slate-100 animate-pulse rounded"/>)) : items.map((p)=> (
+          {loading ? Array.from({length:8}).map((_,i)=>(<div key={i} className="h-72 bg-slate-100 animate-pulse rounded-2xl"/>)) : items.map((p)=> (
             <ProductCard key={p.id} p={p} onAdd={onAdd}/>
           ))}
         </div>
@@ -110,7 +116,7 @@ function Cart({ cart, setCart }) {
   useEffect(()=>{ if(cart?.items) sync(); }, [cart.items?.length]);
   return (
     <section id="cart" className="bg-white">
-      <div className="max-w-6xl mx-auto px-4 py-12 grid md:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto px-4 py-12 grid md:grid-cols-3 gap-8">
         <div className="md:col-span-2">
           <h2 className="text-xl font-bold">Your Cart</h2>
           <div className="mt-4 divide-y">
@@ -217,14 +223,16 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 text-slate-900">
       <Header cartCount={count} />
       <Home onAdd={addToCart} />
-      <Catalog onAdd={addToCart} />
+      <section id="catalog">
+        <Catalog onAdd={addToCart} />
+      </section>
       <Cart cart={cart} setCart={setCart} />
       <Checkout cart={cart} setCart={setCart} />
       <footer className="border-t bg-white">
-        <div className="max-w-6xl mx-auto px-4 py-8 text-sm text-slate-600 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 py-8 text-sm text-slate-600 flex items-center justify-between">
           <span>© {new Date().getFullYear()} ClickNCart</span>
           <span>Built for demo – secure checkout with Stripe optional</span>
         </div>
